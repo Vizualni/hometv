@@ -110,8 +110,10 @@ class VideoController(object):
             self.__multimedia_list.append(VideoObject(filename, self.path))
         return self.__multimedia_list
 
-
     def findvideobyslug(self, slug):
+        """
+        Finds video by slug
+        """
         self.getmultimediafiles()
         for video in self.__multimedia_list:
             if video.getslug() == slug:
@@ -287,7 +289,7 @@ class VideoOMXPlayerClient():
         video_base64 = self.client.send_command("status", True)
         if not video_base64:
             return None
-        return None#VideoObject.deserialize(video_base64)
+        return None
 
     def isplaying(self):
         val = self.client.send_command("isplaying", True)

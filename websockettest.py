@@ -4,6 +4,7 @@ import time
 from hometvapp.extras.video import WebSocketClient
 from threading import Thread
 import Queue
+
 client = WebSocketClient()
 out_queue = Queue.Queue()
 
@@ -22,7 +23,6 @@ def output_thread():
             item = out_queue.get()
         except Queue.Empty, e:
             continue
-        #print ("outputano " + str(item))
         print item
         sys.stdout.flush()
         out_queue.task_done()
@@ -30,22 +30,21 @@ def output_thread():
 def waiting_thread():
     while True:
         inp = client.recv(10)
-        #print ("samo doslo " + str(inp))
         if not inp:
             continue
         out_queue.put(inp)
 
 threads = [Thread(target=input_thread), Thread(target=output_thread), Thread(target=waiting_thread)]
 
-try:
-    for t in threads:
-        t.daemon = True
-        t.start()
+if __name__=='__main__':
+    try:
+        for t in threads:
+            t.daemon = True
+            t.start()
 
-
-    while True:
-        time.sleep(100)
-except (KeyboardInterrupt, SystemExit):
-    pass
+        while True:
+            time.sleep(100)
+    except (KeyboardInterrupt, SystemExit):
+        pass
 
 
