@@ -1,7 +1,7 @@
 # HomeTv
-Remote controlling your tv using raspberry
+Remote controlling your tv using raspberry pi.
 
-Still work in progress
+*Still work in progress*
 
 Allows you to play and control videos remotely using your mobile phone or standard pc/laptop.
 Upload video from your pc/laptop/mobile phone and play it on your tv.
