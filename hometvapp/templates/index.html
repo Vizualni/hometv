@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <!-- Bootstrap -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <script>
+    </script>
+
+    <style type="text/css">
+        body{margin:40px;}
+
+/* Move down content because we have a fixed navbar that is 50px tall */
+body {
+  padding-top: 50px;
+  padding-bottom: 20px;
+}
+.btn-circle {
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  padding: 6px 0;
+  font-size: 12px;
+  line-height: 1.428571429;
+  border-radius: 15px;
+}
+.btn-circle.btn-lg {
+  width: 50px;
+  height: 50px;
+  padding: 10px 16px;
+  font-size: 18px;
+  line-height: 1.33;
+  border-radius: 25px;
+}
+.btn-circle.btn-xl {
+  width: 70px;
+  height: 70px;
+  padding: 10px 16px;
+  font-size: 24px;
+  line-height: 1.33;
+  border-radius: 35px;
+}
+
+.top-buffer { margin-bottom:20px; }
+    </style>
+
+</head>
+<body>
+
+<nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+          <div class="row">
+        <div class="navbar-fluid">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">HomeTV</a>
+          <h4>Currently playing: <span id="current_playing"></span></h4>
+        </div>
+              </div>
+          <div class="row">
+        <div id="navbar" class="navbar-collapse collapse">
+            <button href="/pause" type="button" id="playpause" class="btn btn-default btn-circle btn-sm pause-button"><i class="glyphicon glyphicon-pause"></i></button>
+            <button href="/stop" type="button" class="btn btn-default btn-circle btn-sm stop-button"><i class="glyphicon glyphicon-stop"></i></button>
+            <button type="button" class="btn btn-default btn-circle btn-sm button-seek" seek-val="ll"><i class="glyphicon glyphicon-backward"></i></button>
+            <button type="button" class="btn btn-default btn-circle btn-sm button-seek" seek-val="l"><i class="glyphicon glyphicon glyphicon-chevron-left"></i></button>
+            <button type="button" class="btn btn-default btn-circle btn-sm button-seek" seek-val="r"><i class="glyphicon glyphicon glyphicon-chevron-right"></i></button>
+            <button type="button" class="btn btn-default btn-circle btn-sm button-seek" seek-val="rr"><i class="glyphicon glyphicon-forward"></i></button>
+        </div><!--/.navbar-collapse -->
+              </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid" id="video-container">
+
+    </div> <!-- /container -->
+
+
+<script src="/static/js/jquery.min.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+<script src="/static/js/handlebars-v4.0.3.js"></script>
+<script id="video-entry-template" type="text/x-handlebars-template">
+    <div class="row top-buffer">
+        <div class="col-xs-6 col-sm-3 col-md-2 col-xl-2">
+            <button playfilename="{% templatetag openvariable %}slug{% templatetag closevariable %}" type="button" class="btn btn-default btn-circle btn-lg play-button-watch pull-left"><i class="glyphicon glyphicon-play"></i></button>
+
+            <div class="dropdown" >
+                <button type="button" class="btn btn-circle btn-lg btn-default pull-left" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" ><i class="glyphicon glyphicon-option-horizontal"></i></button>
+              <ul class="dropdown-menu" aria-labelledby="dLabel">
+                <li><a href="#">Rename</a></li>
+                <li><a href="#">Delete</a></li>
+              </ul>
+            </div>
+        </div>
+
+        <div class="col-xs-6 col-sm-9 col-md-10 col-xl-10">
+            <h5 style="max-width:900px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;" data-toggle="tooltip" data-placement="left" title="{% templatetag openvariable %}filename{% templatetag closevariable %}">
+                {% templatetag openvariable %}filename {% templatetag closevariable %} ({% templatetag openvariable %}size{% templatetag closevariable %})
+            </h5>
+
+        </div>
+    </div>
+</script>
+<script type="text/javascript">
+var webSocket;
+    $(document).ready(function(){
+        $("body").on('click', '.play-button-watch', function(argument){
+            var filename = $(this).attr('playfilename');
+            webSocket.send("playfilename "+filename);
+        });
+
+        $('body').on('click', '.pause-button', function(argument){
+            webSocket.send("pause")
+        });
+
+        $('body').on('click', '.stop-button', function(argument){
+            webSocket.send("stop")
+        });
+
+        $('body').on('click', '.button-seek', function(arg){
+           webSocket.send("seek "+$(this).attr("seek-val"));
+        });
+
+
+        var source   = $("#video-entry-template").html();
+        var template = Handlebars.compile(source);
+        console.log("u kurac: "+ template({slug:"aaa", filename:'lalalal'}))
+        webSocket = new WebSocket("ws://" + location.hostname +":9090/");
+
+                /**
+                 * Binds functions to the listeners for the websocket.
+                 */
+                webSocket.onopen = function(event){
+                    webSocket.send("status");
+                };
+
+                webSocket.onmessage = function(event){
+                    var json = JSON.parse(event.data);
+                    if (json["error"] !== undefined){
+                        return displayError(json["error"]);
+                    }
+                    if (json.ok) {
+                        var data = json.data;
+
+                        if(data.folders!==undefined){
+                            var context = {slug: "vrazji kurac"};
+                            console.log(template(context));
+                            var html = "";
+                            for(i in data.folders){
+                                console.log(data.folders[i].slug);
+                                html += template(data.folders[i]);
+                            }
+                            $("#video-container").html(html);
+                            return;
+                        }
+
+                        var is_playing = data.isplaying;
+                        var video = data.VideoObject;
+
+                        if(video && video.filename){
+                            $("#current_playing").text(video.filename);
+                        }else{
+                            $("#current_playing").text("");
+                        }
+                        var pause_button = $("#playpause>i");
+                        if (!is_playing) {
+                            pause_button.removeClass('glyphicon-pause');
+                            pause_button.addClass('glyphicon-play');
+                        } else {
+                            pause_button.removeClass('glyphicon-play');
+                            pause_button.addClass('glyphicon-pause');
+                        }
+                    }
+                };
+
+                webSocket.onclose = function(event){
+                    console.log("Connection closed");
+                };
+
+        function displayError(msg, time){
+            console.log(msg);
+        }
+
+    });
+
+</script>
+<button onclick='javascript:webSocket.send("pause")'>KLIKNI</button>
+
+<form action="/upload" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form }}
+    <input type="submit" value="Submit" />
+</form>
+</body>
+</html>
